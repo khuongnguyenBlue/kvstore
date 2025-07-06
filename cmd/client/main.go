@@ -6,6 +6,7 @@ import (
 	pb "kvstore/pkg/pb/api/proto"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"google.golang.org/grpc"
@@ -35,15 +36,29 @@ func main() {
 	command := os.Args[1]
 	switch command {
 	case "set":
-		if len(os.Args) != 4 {
-			fmt.Println("Usage: client set <key> <value>")
+		if len(os.Args) < 4 {
+			fmt.Println("Usage: client set <key> <value> [ttlSeconds]")
 			return
 		}
 
 		key := os.Args[2]
 		value := os.Args[3]
 
-		resp, err := client.Set(ctx, &pb.SetRequest{Key: key, Value: value})
+		req := &pb.SetRequest{
+			Key:   key,
+			Value: value,
+		}
+
+		// Handle optional TTL parameter
+		if len(os.Args) > 4 {
+			ttl, err := strconv.ParseInt(os.Args[4], 10, 64)
+			if err != nil {
+				log.Fatalf("Invalid TTL value: %v", err)
+			}
+			req.TtlSeconds = &ttl
+		}
+
+		resp, err := client.Set(ctx, req)
 		if err != nil {
 			log.Fatalf("Set failed: %v", err)
 		}
