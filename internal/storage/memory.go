@@ -79,7 +79,7 @@ func (m *MemoryStore) List(limit int) (map[string]string, error) {
 	result := make(map[string]string)
 
 	for k, v := range m.data {
-		if len(result) >= limit {
+		if limit > 0 && len(result) >= limit {
 			break
 		}
 
